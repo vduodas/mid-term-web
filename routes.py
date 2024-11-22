@@ -19,7 +19,6 @@ async def list_products(request: Request):
 async def create_order(request: Request, order : OrderModel = Body(...)):
     order_data = jsonable_encoder(order)
 
-    ########### total_price
     # Insert new order into the "order" collection
     result = await request.app.database["order"].insert_one(order_data)
     
@@ -48,10 +47,32 @@ async def update_order(request: Request, uid: str, orders: List[OrderItem]):
     if not order_to_update:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"No order found with user_id {uid}")
 
+    od_items = jsonable_encoder(orders)
+
+    # total_price of each orderitem in orders: List[OrderItem]
+    for od_item in od_items:
+        pid = od_item["product_id"]
+        product_respectively = await request.app.database["product"].find_one({
+            "_id": pid
+        })
+        price = product_respectively["price"]
+        
+        od_item["total_price"] = od_item["quantity"] * price
+    
     # Update the order in the database
-    await request.app.database["order"].update_one(
-        {"user_id": uid}, 
-        {"$set": {"orders": orders}}
+    await request.app.database["order"].update(
+        {
+            "user_id": uid
+        }, 
+        {
+            "$set": {
+                "user_id": uid,
+                "orders": od_items
+            }
+        },
+        {
+            "upsert": True
+        }
     )
     
     # Fetch the updated order
