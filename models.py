@@ -1,7 +1,6 @@
 import uuid
 from typing import Optional
 from pydantic import BaseModel, Field
-from bson import ObjectId
 from datetime import datetime
 
 ## USER MODEL REGION
@@ -37,11 +36,12 @@ class UserModel(BaseModel):
         }
 
 ##########################################################################
-"""
-def create_order(product: Product, quantity: int) -> Order:
-    total_price = product.price * quantity
-    return Order(product_id=product.product_id, quantity=quantity, total_price=total_price)
-"""
+
+
+
+
+
+
 
 ## ORDER MODEL REGION
 ##########################################################################
@@ -50,6 +50,15 @@ class OrderItem(BaseModel):
     product_id: str = Field(...)
     quantity: int = Field(...)
     total_price: Optional[float] = Field(None)
+    class Config:
+        json_schema_extra: {
+            "orders": [
+                {
+                    "product_id": "kbnjn321v31sd",
+                    "quantity": 1
+                }
+            ]
+        }
     
 # Order model
 class OrderModel(BaseModel):
@@ -62,20 +71,18 @@ class OrderModel(BaseModel):
         populated_by_name = True
         json_schema_extra = {
             "example": {
-                "_id": "Oid01",
+                "_id": "15131",
                 "user_id": "Uid001",
                 "orders": [
                 {
-                    "product_id": "Pid1",
-                    "quantity": 2,
-                    "total_price": 99.9
+                    "product_id": "4763e2d4-51ac-43a2-95a0-696a51745564",
+                    "quantity": 5
                 },
                 {
-                    "product_id": "Pid2",
-                    "quantity": 3,
-                    "total_price": 149.9
+                    "product_id": "d6253004-d913-4bd3-911e-cea8e959424b",
+                    "quantity": 9
                 }
-                ],
+                ]
             }
         }
 ##########################################################################
