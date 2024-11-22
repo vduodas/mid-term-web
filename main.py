@@ -1,8 +1,9 @@
 from motor.motor_asyncio import AsyncIOMotorClient
 from fastapi import FastAPI, HTTPException
 from dotenv import dotenv_values
-from contextlib import asynccontextmanager
+# from contextlib import asynccontextmanager
 
+# from pymongo import MongoClient
 from web_mission.routes import router as order_router
 from web_mission.models import UserModel, ProductModel, Address
 
@@ -10,26 +11,13 @@ from web_mission.models import UserModel, ProductModel, Address
 # from bson import ObjectId
 # from typing import List, Optional
 
-# MongoDB connection
 config = dotenv_values(".env")
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    app.mongodb_client = AsyncIOMotorClient(config["ATLAS_URI"])
-    app.database = app.mongodb_client[config["DB_NAME"] + "test"]
-    
-    await create_user(app.database["user"])
-    await create_product(app.database["product"])
-    
-    yield
-    app.mongodb_client.close()
-    await app.database.drop_collection("order")
-    await app.database.drop_collection("product")
-    await app.database.drop_collection("user")
+app = FastAPI()
 
-app = FastAPI(lifespan=lifespan)
-app.include_router(order_router, tags=["orders"], prefix="/orders")
-
+# MongoDB connection
+app.mongo_client = AsyncIOMotorClient(config["ATLAS_URI"])
+app.database = app.mongo_client[config["DB_NAME"]]
 
 
 # Fake user product
@@ -41,7 +29,7 @@ async def create_product(db):
         stock=100
     )
     product = product.model_dump(by_alias=True)
-    await db.insert_one(product)
+    await db["product"].insert_one(product)
     
     product = ProductModel(
         name="Keo sua Milkita",
@@ -50,7 +38,7 @@ async def create_product(db):
         stock=70
     )
     product = product.model_dump(by_alias=True)
-    await db.insert_one(product)
+    await db["product"].insert_one(product)
 
 
 
@@ -64,6 +52,19 @@ async def create_user(db):
     )
 
     user = user.model_dump(by_alias=True)
-    await db.insert_one(user)
+    await db["user"].insert_one(user)
 
 
+# Sample data insertion should be awaited
+@app.on_event("startup")
+async def startup_event():
+    await create_user(app.database)
+    await create_product(app.database)
+
+# Include order router
+app.include_router(order_router, tags=["orders"], prefix="/orders")
+
+# MongoDB shutdown
+@app.on_event("shutdown")
+def shutdown_event():
+    app.mongo_client.close()
