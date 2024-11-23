@@ -1,12 +1,12 @@
 from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from typing import List
-
+from datetime import datetime
 from web_mission.models import OrderModel, OrderItem, OrdersOfUser
 router = APIRouter()
 
-@router.get("/", response_description="List orders of a user", response_model=List[OrdersOfUser])
-async def list_orders(request: Request, uid: str = Body(...)):
+@router.get("/{uid}", response_description="List orders of a user", response_model=List[OrdersOfUser])
+async def list_orders(request: Request, uid: str):
     orders_of_user = await request.app.database["order"].find({"user_id": uid}).limit(100).to_list(100)
     if not orders_of_user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"User with ID {uid} has not been purchased yet")
@@ -37,7 +37,7 @@ async def create_order(request: Request, uid: str = Body(...), orders : List[Ord
         # Insert 'total_price' into document
         order["total_price"] = quantity * price
     
-    ordermodel = OrderModel(user_id=uid, orders=orders)
+    ordermodel = OrderModel(user_id=uid, orders=orders, created_at=str(datetime.now()).strip().split(" ")[1][:8])
     
     # Insert new order into the "order" collection
     result = await request.app.database["order"].insert_one(ordermodel.model_dump(by_alias=True))
