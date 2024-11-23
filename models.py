@@ -45,7 +45,7 @@ class UserModel(BaseModel):
 
 ## ORDER MODEL REGION
 ##########################################################################
-
+# OrderItem
 class OrderItem(BaseModel):
     product_id: str = Field(...)
     quantity: int = Field(...)
@@ -59,6 +59,11 @@ class OrderItem(BaseModel):
                 }
             ]
         }
+
+# OrdersOfUser = OrderItem + created_at. In order to get orders of a user   
+class OrdersOfUser(BaseModel):
+    orders: list[OrderItem] = Field(...)
+    create_at: str = Field(...)
     
 # Order model
 class OrderModel(BaseModel):

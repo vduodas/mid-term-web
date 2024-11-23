@@ -4,7 +4,10 @@ from dotenv import dotenv_values
 # from contextlib import asynccontextmanager
 
 # from pymongo import MongoClient
-from web_mission.routes import router as order_router
+# from web_mission.routes import router as order_router
+from web_mission.routes.order_routes import router as order_router
+from web_mission.routes.product_routes import router as product_router
+
 # from web_mission.models import UserModel, ProductModel, Address
 
 # from pydantic import BaseModel, Field
@@ -22,4 +25,5 @@ app.database = app.mongo_client[config["DB_NAME"]]
 # Include order router
 app.include_router(order_router, tags=["orders"], prefix="/orders")
 
-
+# Inclue product router
+app.include_router(product_router, tags=["products"], prefix="/products")

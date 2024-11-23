@@ -7,7 +7,7 @@ from web_mission.models import ProductModel, OrderItem
 router = APIRouter()
 
 # Lấy tất cả thông tin liên quan đến sản phẩm theo product_id
-@router.get("/products", response_description="List all products", response_model=List[ProductModel])
+@router.get("/", response_description="List all products", response_model=List[ProductModel])
 async def list_products(request: Request):
     products = await request.app.database["product"].find(limit=100).to_list(length=100)
     if products:
