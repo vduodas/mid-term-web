@@ -2,18 +2,9 @@ from fastapi import APIRouter, Body, Request, Response, HTTPException, status
 from fastapi.encoders import jsonable_encoder
 from typing import List
 
-from web_mission.models import UserModel, ProductModel, OrderModel, OrderItem
+from web_mission.models import OrderModel, OrderItem
 
 router = APIRouter()
-
-# Lấy tất cả thông tin liên quan đến sản phẩm theo product_id
-@router.get("/products", response_description="List all products", response_model=List[ProductModel])
-async def list_products(request: Request):
-    products = await request.app.database["product"].find(limit=100).to_list(length=100)
-    if products:
-        return products
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Unavailable products")
-
 
 @router.post("/", response_description="Create a new order", status_code=status.HTTP_201_CREATED, response_model=OrderModel)
 async def create_order(request: Request, uid: str = Body(...), orders : List[OrderItem] = Body(...)):
@@ -100,7 +91,3 @@ async def update_order(request: Request, oid: str = Body(...), orders: List[Orde
     updated_order = await request.app.database["order"].find_one({"_id": oid})
     
     return updated_order
-
-
-    
-    
